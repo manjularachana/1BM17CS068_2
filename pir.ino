@@ -1,54 +1,32 @@
-int calibrationTime=30;
-long unsigned int lowin;
-long unsigned int pause=5000;
-boolean locklow=true;
-boolean takelowtime;
-int pirpin=3;
-int ledpin=11;
+int ledPin = 13;                // choose the pin for the LED
+int inputPin = 2;               // choose the input pin (for PIR sensor)
+int pirState = LOW;             // we start, assuming no motion detected
+int val = 0;                    // variable for reading the pin status
+ 
 void setup() {
+  pinMode(ledPin, OUTPUT);      // declare LED as output
+  pinMode(inputPin, INPUT);     // declare sensor as input
+ 
   Serial.begin(9600);
-  pinMode(pirpin,INPUT);
-  pinMode(ledpin,OUTPUT);
-  digitalWrite(pirpin,LOW);
-  Serial.print("calibrating sensor");
-  for(int i=0;i<calibrationTime;i++){
-    Serial.print(".");
-    delay(1000);}
-    
-  Serial.println("done");
-  Serial.println("SENSOR ACTIVE");
-  delay(50);
-
 }
-
-void loop() {
-  if(digitalRead(pirpin)==HIGH){
-     digitalWrite(ledpin,HIGH);
-     if(locklow){
-     locklow=false;
-     Serial.println("---");
-     Serial.println("motion detected at ");
-     Serial.println(millis()/1000);
-     Serial.println("sec");
-     delay(50);
-     }
-     takelowtime=true;
+ 
+void loop(){
+  val = digitalRead(inputPin);  // read input value
+  if (val == HIGH) {            // check if the input is HIGH
+    digitalWrite(ledPin, HIGH);  // turn LED ON
+    if (pirState == LOW) {
+      // we have just turned on
+      Serial.println("Motion detected!");
+      // We only want to print on the output change, not state
+      pirState = HIGH;
+    }
+  } else {
+    digitalWrite(ledPin, LOW); // turn LED OFF
+    if (pirState == HIGH){
+      // we have just turned of
+      Serial.println("Motion ended!");
+      // We only want to print on the output change, not state
+      pirState = LOW;
+    }
   }
-  
-  if(digitalRead(pirpin)==LOW){
-     digitalWrite(ledpin,LOW);
-     if(takelowtime){
-     lowin=millis();
-     takelowtime=false;}
-     if(!locklow&& millis()-lowin>pause){
-      locklow=true;
-      Serial.print("motion ended at ");
-      Serial.print((millis()-pause)/1000);
-      Serial.println("sec");
-      delay(50);
-     }
-    
-     }
 }
-    
-  
